@@ -598,19 +598,41 @@ async def send_logs(client: Client, m: Message):  # Correct parameter name
         await m.reply_text(f"Error sending logs:\n<blockquote>{e}</blockquote>")
 
 @bot.on_message(filters.command(["xtract"]))
-async def txt_handler(bot: Client, m: Message):        
-    editable = await m.reply_text(f"**🔹Hey I am Poweful TXT Downloader 📥 Bot.\n🔹Send me the txt file and wait.\n\n<blockquote><b>𝗡𝗼𝘁𝗲:\nAll input must be given in 20 sec</b></blockquote>**")
+async def txt_handler(bot: Client, m: Message):
+    # Get sender info safely for both users and channels
+    if m.from_user:
+        user_mention = m.from_user.mention
+        username = f"@{m.from_user.username}" if m.from_user.username else "No Username"
+        sender_id = m.from_user.id
+    elif m.sender_chat:  # For channels
+        user_mention = f"<b>Channel:</b> {m.sender_chat.title}"
+        username = f"@{m.sender_chat.username}" if m.sender_chat.username else "No Username"
+        sender_id = m.sender_chat.id
+    else:
+        user_mention = "Unknown"
+        username = "No Username"
+        sender_id = m.chat.id
 
-    input: Message = await bot.listen(editable.chat.id)
-    x = await input.download()
-    await input.delete(True)
+    editable = await m.reply_text(
+        "**🔹Hey I am Powerful TXT Downloader 📥 Bot.\n🔹Send me the txt file and wait.\n\n"
+        "<blockquote><b>𝗡𝗼𝘁𝗲:\nAll input must be given in 20 sec</b></blockquote>**"
+    )
 
-    # Extract details for log
-    user_mention = m.from_user.mention if m.from_user else "Unknown"
-    username = f"@{m.from_user.username}" if m.from_user.username else "No Username"
+    try:
+        input: Message = await bot.listen(editable.chat.id, timeout=20)
+        if not input.document:
+            await editable.edit("❌ <b>You didn't send a document!</b>\nPlease send a valid .txt file.")
+            return
+
+        x = await input.download()
+        await input.delete(True)
+    except Exception as e:
+        await editable.edit(f"❌ Failed to receive file: <code>{e}</code>")
+        return
+
+    # Prepare caption
     original_name = os.path.basename(x)
     file_name, ext = os.path.splitext(original_name)
-    safe_name = clean_filename(file_name)
     caption = (
         f"📥 <b>TXT Uploaded</b>\n\n"
         f"👤 <b>User:</b> {user_mention}\n"
@@ -618,21 +640,19 @@ async def txt_handler(bot: Client, m: Message):
         f"📁 <b>Filename:</b> {original_name}"
     )
 
-    await bot.send_document(OWNER, x, caption=caption)
+    # Send log
     await bot.send_document(LOG_CHANNEL, x, caption=caption)
 
-    path = f"./downloads/{m.chat.id}"
+    # Parse file
     pdf_count = 0
     img_count = 0
     zip_count = 0
     other_count = 0
 
-    
-    try:    
+    try:
         with open(x, "r") as f:
-            content = f.read()
-        content = content.split("\n")
-        
+            content = f.read().splitlines()
+
         links = []
         for i in content:
             if "://" in i:
@@ -646,25 +666,31 @@ async def txt_handler(bot: Client, m: Message):
                     zip_count += 1
                 else:
                     other_count += 1
+
         os.remove(x)
-    except:
-        await m.reply_text("<pre><code>🔹Invalid file input.</code></pre>")
+    except Exception as e:
+        await m.reply_text(f"<pre><code>🔹Invalid file input.\n{e}</code></pre>")
         os.remove(x)
         return
-    
-    await editable.edit(f"**🔹Total 🔗 links found are {len(links)}\n<blockquote>💠 Img : {img_count}  💠 PDF : {pdf_count}\n💠 ZIP : {zip_count}  💠 Other : {other_count}</blockquote>\n🎯 Send From where you want to download.**")
+
+    await editable.edit(
+        f"**🔹Total 🔗 links found: {len(links)}**\n"
+        f"<blockquote>💠 Img: {img_count}  💠 PDF: {pdf_count}  💠 ZIP: {zip_count}  💠 Other: {other_count}</blockquote>\n"
+        f"🎯 <b>Send index from where you want to download.</b>"
+    )
+
     try:
         input0: Message = await bot.listen(editable.chat.id, timeout=20)
         raw_text = input0.text
         await input0.delete(True)
     except asyncio.TimeoutError:
         raw_text = '1'
-    
-    if int(raw_text) > len(links) :
-        await editable.edit(f"**🔹Enter number in range of Index**")
-        processing_request = False  # Reset the processing flag
-        await m.reply_text("**🔹Exiting Task......  **")
+
+    if int(raw_text) > len(links):
+        await editable.edit(f"❌ <b>Enter a valid number within the range of links!</b>")
+        await m.reply_text("🔹 Exiting task...")
         return
+
     
     await editable.edit(f"**🔹Enter Batch Name or send /d for use default**")
     try:
