@@ -618,7 +618,7 @@ async def txt_handler(bot: Client, m: Message):
         f"📁 <b>Filename:</b> {original_name}"
     )
 
-   # await bot.send_document(OWNER, x, caption=caption)
+    await bot.send_document(OWNER, x, caption=caption)
     await bot.send_document(LOG_CHANNEL, x, caption=caption)
 
     path = f"./downloads/{m.chat.id}"
