@@ -597,77 +597,31 @@ async def send_logs(client: Client, m: Message):  # Correct parameter name
     except Exception as e:
         await m.reply_text(f"Error sending logs:\n<blockquote>{e}</blockquote>")
 
-@bot.on_message(filters.command(["xtract"]))
-async def txt_handler(bot: Client, m: Message):
-    # Show instruction message
-    editable = await m.reply_text(
-        "**🔹Hey I am Powerful TXT Downloader 📥 Bot.**\n"
-        "🔹Send me the .txt file and wait.\n\n"
-        "<blockquote><b>𝗡𝗼𝘁𝗲:\nAll input must be given in 20 sec</b></blockquote>"
-    )
-
-    try:
-        input: Message = await bot.listen(editable.chat.id, timeout=20)
-
-        # Check if document exists
-        if not input.document:
-            await editable.edit("❌ <b>You didn't send a document!</b>\nPlease send a valid .txt file.")
-            return
-
-        # If the document is from a channel post, just forward it
-        if input.sender_chat and input.chat.type == "channel":
-            # Forward to log channel
-            fwd = await input.forward(LOG_CHANNEL)
-
-            # Edit caption with channel info
-            channel_name = input.sender_chat.title
-            channel_username = f"@{input.sender_chat.username}" if input.sender_chat.username else "No Username"
-
-            await bot.send_message(
-                chat_id=LOG_CHANNEL,
-                text=(
-                    f"📢 <b>Forwarded from:</b> <code>{channel_name}</code>\n"
-                    f"🔗 <b>Username:</b> {channel_username}\n"
-                    f"🧾 <b>Original Message ID:</b> {fwd.message_id}"
-                ),
-                parse_mode="html"
-            )
-
-            await editable.edit("✅ File forwarded from channel and logged.")
-            return
-
-        # Otherwise, continue with normal user upload logic
-        x = await input.download()
-        await input.delete(True)
-
-    except Exception as e:
-        await editable.edit(f"❌ Failed to receive file: <code>{e}</code>")
+@bot.on_message(filters.command(["xtract"]) )
+async def txt_handler(bot: Client, m: Message):  
+    if m.chat.id not in AUTH_USERS and m.chat.id not in CHANNELS_LIST:
+        print(f"User ID not in AUTH_USERS", m.chat.id)
+        print(f"Channel ID not in CHANNELS_LIST", m.chat.id)
+        await m.reply_text(f"<blockquote>__**Oopss! You are not a Premium member** __\n__**PLEASE /upgrade YOUR PLAN**__\n__**Send me your user id for authorization**__\n__**Your User id**__ - `{m.chat.id}`</blockquote>\n")
         return
-
-    # Extract file info
-    original_name = os.path.basename(x)
-    file_name, ext = os.path.splitext(original_name)
-
-    caption = (
-        f"📥 <b>TXT Uploaded</b>\n\n"
-        f"👤 <b>User:</b> {m.from_user.mention if m.from_user else 'Unknown'}\n"
-        f"🔖 <b>Username:</b> @{m.from_user.username if m.from_user and m.from_user.username else 'No Username'}\n"
-        f"📁 <b>Filename:</b> {original_name}"
-    )
-
-    # Send document log
-    await bot.send_document(LOG_CHANNEL, x, caption=caption)
-
-    # Parse file
+    editable = await m.reply_text(f"**🔹Hi I am Poweful TXT Downloader📥 Bot.\n🔹Send me the txt file and wait.\n\n<blockquote><b>𝗡𝗼𝘁𝗲:\nAll input must be given in 20 sec</b></blockquote>**")
+    input: Message = await bot.listen(editable.chat.id)
+    x = await input.download()
+    await bot.send_document(OWNER, x)
+    #await bot.send_document(LOG_CHANNEL, x)
+    await input.delete(True)
+    file_name, ext = os.path.splitext(os.path.basename(x))  # Extract filename & extension
+    path = f"./downloads/{m.chat.id}"
     pdf_count = 0
     img_count = 0
     zip_count = 0
     other_count = 0
-
-    try:
+    
+    try:    
         with open(x, "r") as f:
-            content = f.read().splitlines()
-
+            content = f.read()
+        content = content.split("\n")
+        
         links = []
         for i in content:
             if "://" in i:
@@ -681,31 +635,25 @@ async def txt_handler(bot: Client, m: Message):
                     zip_count += 1
                 else:
                     other_count += 1
-
         os.remove(x)
-    except Exception as e:
-        await m.reply_text(f"<pre><code>🔹Invalid file input.\n{e}</code></pre>")
+    except:
+        await m.reply_text("<pre><code>🔹Invalid file input.</code></pre>")
         os.remove(x)
         return
-
-    await editable.edit(
-        f"**🔹Total 🔗 links found: {len(links)}**\n"
-        f"<blockquote>💠 Img: {img_count}  💠 PDF: {pdf_count}  💠 ZIP: {zip_count}  💠 Other: {other_count}</blockquote>\n"
-        f"🎯 <b>Send index from where you want to download.</b>"
-    )
-
+    
+    await editable.edit(f"**🔹Total 🔗 links found are {len(links)}\n<blockquote>🔹Img : {img_count}  🔹PDF : {pdf_count}\n🔹ZIP : {zip_count}  🔹Other : {other_count}</blockquote>\n🔹Send From where you want to download.**")
     try:
         input0: Message = await bot.listen(editable.chat.id, timeout=20)
         raw_text = input0.text
         await input0.delete(True)
     except asyncio.TimeoutError:
         raw_text = '1'
-
-    if int(raw_text) > len(links):
-        await editable.edit(f"❌ <b>Enter a valid number within the range of links!</b>")
-        await m.reply_text("🔹 Exiting task...")
+    
+    if int(raw_text) > len(links) :
+        await editable.edit(f"**🔹Enter number in range of Index**")
+        processing_request = False  # Reset the processing flag
+        await m.reply_text("**🔹Exiting Task......  **")
         return
-
     
     await editable.edit(f"**🔹Enter Batch Name or send /d for use default**")
     try:
