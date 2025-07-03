@@ -597,19 +597,67 @@ async def send_logs(client: Client, m: Message):  # Correct parameter name
     except Exception as e:
         await m.reply_text(f"Error sending logs:\n<blockquote>{e}</blockquote>")
 
-@bot.on_message(filters.command(["xtract"]) )
-async def txt_handler(bot: Client, m: Message):  
-    if m.chat.id not in AUTH_USERS and m.chat.id not in CHANNELS_LIST:
-        print(f"User ID not in AUTH_USERS", m.chat.id)
-        print(f"Channel ID not in CHANNELS_LIST", m.chat.id)
-        await m.reply_text(f"<blockquote>__**Oopss! You are not a Premium member** __\n__**PLEASE /upgrade YOUR PLAN**__\n__**Send me your user id for authorization**__\n__**Your User id**__ - `{m.chat.id}`</blockquote>\n")
+@bot.on_message(filters.command(["xtract"]))
+async def txt_handler(bot: Client, m: Message):
+    # Show instruction message
+    editable = await m.reply_text(
+        "**🔹Hey I am Powerful TXT Downloader 📥 Bot.**\n"
+        "🔹Send me the .txt file and wait.\n\n"
+        "<blockquote><b>𝗡𝗼𝘁𝗲:\nAll input must be given in 20 sec</b></blockquote>"
+    )
+
+    try:
+        input: Message = await bot.listen(editable.chat.id, timeout=20)
+
+        # Check if document exists
+        if not input.document:
+            await editable.edit("❌ <b>You didn't send a document!</b>\nPlease send a valid .txt file.")
+            return
+
+        # If the document is from a channel post, just forward it
+        if input.sender_chat and input.chat.type == "channel":
+            # Forward to log channel
+            fwd = await input.forward(LOG_CHANNEL)
+
+            # Edit caption with channel info
+            channel_name = input.sender_chat.title
+            channel_username = f"@{input.sender_chat.username}" if input.sender_chat.username else "No Username"
+
+            await bot.send_message(
+                chat_id=LOG_CHANNEL,
+                text=(
+                    f"📢 <b>Forwarded from:</b> <code>{channel_name}</code>\n"
+                    f"🔗 <b>Username:</b> {channel_username}\n"
+                    f"🧾 <b>Original Message ID:</b> {fwd.message_id}"
+                ),
+                parse_mode="html"
+            )
+
+            await editable.edit("✅ File forwarded from channel and logged.")
+            return
+
+        # Otherwise, continue with normal user upload logic
+        x = await input.download()
+        await input.delete(True)
+
+    except Exception as e:
+        await editable.edit(f"❌ Failed to receive file: <code>{e}</code>")
         return
-    editable = await m.reply_text(f"**🔹Hi I am Poweful TXT Downloader📥 Bot.\n🔹Send me the txt file and wait.\n\n<blockquote><b>𝗡𝗼𝘁𝗲:\nAll input must be given in 20 sec</b></blockquote>**")
-    input: Message = await bot.listen(editable.chat.id)
-    x = await input.download()
-    await bot.send_document(OWNER, x)
-    #await bot.send_document(LOG_CHANNEL, x)
-    await input.delete(True)
+
+    # Extract file info
+    original_name = os.path.basename(x)
+    file_name, ext = os.path.splitext(original_name)
+
+    caption = (
+        f"📥 <b>TXT Uploaded</b>\n\n"
+        f"👤 <b>User:</b> {m.from_user.mention if m.from_user else 'Unknown'}\n"
+        f"🔖 <b>Username:</b> @{m.from_user.username if m.from_user and m.from_user.username else 'No Username'}\n"
+        f"📁 <b>Filename:</b> {original_name}"
+    )
+
+    # Send document log
+    await bot.send_document(LOG_CHANNEL, x, caption=caption)
+
     file_name, ext = os.path.splitext(os.path.basename(x))  # Extract filename & extension
     path = f"./downloads/{m.chat.id}"
     pdf_count = 0
