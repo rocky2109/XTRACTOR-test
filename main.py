@@ -599,48 +599,50 @@ async def send_logs(client: Client, m: Message):  # Correct parameter name
 
 @bot.on_message(filters.command(["xtract"]))
 async def txt_handler(bot: Client, m: Message):
-    # Get sender info safely for both users and channels
-    if m.from_user:
-        user_mention = m.from_user.mention
-        username = f"@{m.from_user.username}" if m.from_user.username else "No Username"
-        sender_id = m.from_user.id
-    elif m.sender_chat:  # For channels
-        user_mention = f"<b>Channel:</b> {m.sender_chat.title}"
-        username = f"@{m.sender_chat.username}" if m.sender_chat.username else "No Username"
-        sender_id = m.sender_chat.id
-    else:
-        user_mention = "Unknown"
-        username = "No Username"
-        sender_id = m.chat.id
-
+    # Show prompt
     editable = await m.reply_text(
-        "**🔹Hey I am Powerful TXT Downloader 📥 Bot.\n🔹Send me the txt file and wait.\n\n"
-        "<blockquote><b>𝗡𝗼𝘁𝗲:\nAll input must be given in 20 sec</b></blockquote>**"
+        "**🔹Hey I am Powerful TXT Downloader 📥 Bot.**\n"
+        "🔹Send me the .txt file and wait.\n\n"
+        "<blockquote><b>𝗡𝗼𝘁𝗲:\nAll input must be given in 20 sec</b></blockquote>"
     )
 
     try:
         input: Message = await bot.listen(editable.chat.id, timeout=20)
+
+        # Check if it's a document
         if not input.document:
             await editable.edit("❌ <b>You didn't send a document!</b>\nPlease send a valid .txt file.")
             return
 
+        # Download the file
         x = await input.download()
         await input.delete(True)
+
     except Exception as e:
         await editable.edit(f"❌ Failed to receive file: <code>{e}</code>")
         return
 
-    # Prepare caption
+    # Extract file info
     original_name = os.path.basename(x)
     file_name, ext = os.path.splitext(original_name)
-    caption = (
-        f"📥 <b>TXT Uploaded</b>\n\n"
-        f"👤 <b>User:</b> {user_mention}\n"
-        f"🔖 <b>Username:</b> {username}\n"
-        f"📁 <b>Filename:</b> {original_name}"
-    )
 
-    # Send log
+    # Caption for log based on sender type
+    if m.sender_chat:
+        caption = (
+            f"📥 <b>TXT Uploaded via Channel</b>\n\n"
+            f"🏷️ <b>Channel:</b> {m.sender_chat.title}\n"
+            f"🔖 <b>Username:</b> @{m.sender_chat.username if m.sender_chat.username else 'No Username'}\n"
+            f"📁 <b>Filename:</b> {original_name}"
+        )
+    else:
+        caption = (
+            f"📥 <b>TXT Uploaded</b>\n\n"
+            f"👤 <b>User:</b> {m.from_user.mention if m.from_user else 'Unknown'}\n"
+            f"🔖 <b>Username:</b> @{m.from_user.username if m.from_user and m.from_user.username else 'No Username'}\n"
+            f"📁 <b>Filename:</b> {original_name}"
+        )
+
+    # Send log document
     await bot.send_document(LOG_CHANNEL, x, caption=caption)
 
     # Parse file
