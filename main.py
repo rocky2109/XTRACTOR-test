@@ -1095,10 +1095,21 @@ async def txt_handler(bot: Client, m: Message):
                 url = mpd
                 keys_string = " ".join([f"--key {key}" for key in keys])
 
-            #elif "classplusapp" in url:
-                #signed_api = f"https://team-jnc-n-drm.vercel.app/api?url={url}"
-                #response = requests.get(signed_api, timeout=10)
-                #url = response.text.strip()
+            elif "classplusapp.com/drm/" in url:
+                url = f"https://drmapijion-botupdatevip.vercel.app/api?url={url}&token={raw_text4}"
+                #url = 'https://dragoapi.vercel.app/classplus?link=' + url
+                mpd, keys = helper.get_mps_and_keys(url)
+                url = mpd
+                keys_string = " ".join([f"--key {key}" for key in keys])
+                
+
+            elif "classplusapp" in url:
+                signed_api = f"https://team-jnc-n-drm.vercel.app/api?url={url}"
+                response = requests.get(signed_api, timeout=10)
+                url = response.text.strip()
+
+
+               
                 
             elif "tencdn.classplusapp" in url:
                 headers = {'host': 'api.classplusapp.com', 'x-access-token': f'{cptoken}', 'accept-language': 'EN', 'api-version': '18', 'app-version': '1.4.73.2', 'build-number': '35', 'connection': 'Keep-Alive', 'content-type': 'application/json', 'device-details': 'Xiaomi_Redmi 7_SDK-32', 'device-id': 'c28d3cb16bbdac01', 'region': 'IN', 'user-agent': 'Mobile-Android', 'webengage-luid': '00000187-6fe4-5d41-a530-26186858be4c', 'accept-encoding': 'gzip'}
@@ -1149,13 +1160,62 @@ async def txt_handler(bot: Client, m: Message):
                 cmd = f'yt-dlp -f "{ytf}" "{url}" -o "{name}.mp4"'
 
             try:
-                cc = f'[🎥]Vid Id : {str(count).zfill(3)}\n**Video Title :** `{name1} [{res}p].mkv`\n<blockquote><b>Batch Name :</b> {b_name}</blockquote>\n\n**Extracted by➤**{CR}\n'
-                cc1 = f'[📕]Pdf Id : {str(count).zfill(3)}\n**File Title :** `{name1}.pdf`\n<blockquote><b>Batch Name :</b> {b_name}</blockquote>\n\n**Extracted by➤**{CR}\n'
-                cczip = f'[📁]Zip Id : {str(count).zfill(3)}\n**Zip Title :** `{name1}.zip`\n<blockquote><b>Batch Name :</b> {b_name}</blockquote>\n\n**Extracted by➤**{CR}\n' 
-                ccimg = f'[🖼️]Img Id : {str(count).zfill(3)}\n**Img Title :** `{name1}.jpg`\n<blockquote><b>Batch Name :</b> {b_name}</blockquote>\n\n**Extracted by➤**{CR}\n'
-                ccm = f'[🎵]Audio Id : {str(count).zfill(3)}\n**Audio Title :** `{name1}.mp3`\n<blockquote><b>Batch Name :</b> {b_name}</blockquote>\n\n**Extracted by➤**{CR}\n'
-                cchtml = f'[🌐]Html Id : {str(count).zfill(3)}\n**Html Title :** `{name1}.html`\n<blockquote><b>Batch Name :</b> {b_name}</blockquote>\n\n**Extracted by➤**{CR}\n'
-                  
+                cc = (
+                    f"**╭━━━━━━━━━━━╮**\n"
+                    f"**⚝ 𝐕ɪᴅᴇⱺ 𝐈𝐃 : {str(count).zfill(3)}**\n"
+                    f"**╰━━━━━━━━━━━╯**\n\n"
+                    f"🎥 <b>Tɪᴛʟᴇ: {name1} 𝗖𝗛𝗢𝗦𝗘𝗡 𝗢𝗡𝗘 ⚝.mp4</b>\n"
+                    f"├── <b>Quality:</b> {res}\n\n"
+                    f">💎 <b>𝐂ⱺᴜʀꜱᴇ:</b> {b_name}\n\n"
+                    f">𖣐 <b>𝗫𝘁𝗿𝗮𝗰𝘁𝗲𝗱 𝗕𝘆:</b> {CR}"
+              )
+
+                cc1 = (
+                    f"**╭━━━━━━━━━━━╮**\n"
+                    f"**📙 𝐏𝐃𝐅 𝐈𝐃 : {str(count).zfill(3)}**\n"
+                    f"**╰━━━━━━━━━━━╯**\n\n"
+                    f"📁 <b>Tɪᴛʟᴇ: {name1} 𝗖𝗛𝗢𝗦𝗘𝗡 𝗢𝗡𝗘 ⚝.pdf</b>\n\n"
+                    f">💎 <b>𝐂ⱺᴜʀꜱᴇ:</b> {b_name}\n\n"
+                    f">𖣐 <b>𝗫𝘁𝗿𝗮𝗰𝘁𝗲𝗱 𝗕𝘆:</b> {CR}"
+               )
+
+                cczip = (
+                    f"**╭━━━━━━━━━━━╮**\n"
+                    f"**📦 𝐅𝐢𝐥𝐞 𝐈𝐃 : {str(count).zfill(3)}**\n"
+                    f"**╰━━━━━━━━━━━╯**\n\n"
+                    f"🗂️ <b>Tɪᴛʟᴇ: {name1} 𝗖𝗛𝗢𝗦𝗘𝗡 𝗢𝗡𝗘 ⚝.zip</b>\n\n"
+                    f">💎 <b>𝐂ⱺᴜʀꜱᴇ:</b> {b_name}\n\n"
+                    f">𖣐 <b>𝗫𝘁𝗿𝗮𝗰𝘁𝗲𝗱 𝗕𝘆:</b> {CR}"
+                   
+                )
+                
+                ccimg = (
+                    f"**<a href='{link0}'>╭━━━━━━━━━━━╮**\n"
+                    f"**🖼️ 𝐈𝐌𝐀𝐆𝐄 𝐈𝐃 : {str(count).zfill(3)}**\n"
+                    f"**╰━━━━━━━━━━━╯</a>**\n\n"
+                    f"<b>Tɪᴛʟᴇ: {name1} 𝗖𝗛𝗢𝗦𝗘𝗡 𝗢𝗡𝗘 ⚝.jpg</b>\n\n"
+                    f"📚 <b>𝐂ⱺᴜʀꜱᴇ:</b> {b_name}\n\n"
+                    f">𖣐 <b>𝗫𝘁𝗿𝗮𝗰𝘁𝗲𝗱 𝗕𝘆:</b> {CR}"
+                )
+
+                ccm = (
+                    f"**╭━━━━━━━━━━━╮**\n"
+                    f"**🎵 𝐀𝐔𝐃𝐈𝐎 𝐈𝐃 : {str(count).zfill(3)}**\n"
+                    f"**╰━━━━━━━━━━━╯**\n\n"
+                    f"🎧 <b>Tɪᴛʟᴇ: {name1} 𝗖𝗛𝗢𝗦𝗘𝗡 𝗢𝗡𝗘 ⚝.mp3</b>\n\n"
+                    f">💎 <b>𝐂ⱺᴜʀꜱᴇ:</b> {b_name}\n\n"
+                    f">𖣐 <b>𝗫𝘁𝗿𝗮𝗰𝘁𝗲𝗱 𝗕𝘆:</b> {CR}"
+                )
+
+                cchtml = (
+                    f"**╭━━━━━━━━━━━╮**\n"
+                    f"**🌐 𝐇𝐓𝐌𝐋 𝐈𝐃 : {str(count).zfill(3)}**\n"
+                    f"**╰━━━━━━━━━━━╯**\n\n"
+                    f"📝 <b>Tɪᴛʟᴇ: {name1} 𝗖𝗛𝗢𝗦𝗘𝗡 𝗢𝗡𝗘 ⚝.html</b>\n\n"
+                    f">💎 <b>𝐂ⱺᴜʀꜱᴇ:</b> {b_name}\n\n"
+                    f">𖣐 <b>𝗫𝘁𝗿𝗮𝗰𝘁𝗲𝗱 𝗕𝘆:</b> {CR}"
+                )
+                
                 if "drive" in url:
                     try:
                         ka = await helper.download(url, name)
