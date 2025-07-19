@@ -39,6 +39,11 @@ import zipfile
 import shutil
 import ffmpeg
 
+
+def safe_filename(name: str) -> str:
+    return re.sub(r'[\\/*?:"<>|]', '_', name)  # replaces invalid characters for filenames
+
+
 # Initialize the bot
 bot = Client(
     "bot",
@@ -1337,7 +1342,9 @@ async def txt_handler(bot: Client, m: Message):
                     prog = await bot.send_message(channel_id, Show, disable_web_page_preview=True)
                     prog1 = await m.reply_text(Show1, disable_web_page_preview=True)
                     res_file = await helper.download_and_decrypt_video(url, cmd, name, appxkey)  
-                    filename = res_file  
+                    clean_name = safe_filename(name)
+                    res_file = await helper.download_and_decrypt_video(url, cmd, clean_name, appxkey)
+                    filename = res_file
                     await prog1.delete(True)
                     await prog.delete(True)
                     await helper.send_vid(bot, m, cc, filename, thumb, name, prog, channel_id)
@@ -1367,6 +1374,8 @@ async def txt_handler(bot: Client, m: Message):
                     prog = await bot.send_message(channel_id, Show, disable_web_page_preview=True)
                     prog1 = await m.reply_text(Show1, disable_web_page_preview=True)
                     res_file = await helper.decrypt_and_merge_video(mpd, keys_string, path, name, raw_text2)
+                    clean_name = safe_filename(name)
+                    res_file = await helper.download_and_decrypt_video(url, cmd, clean_name, appxkey)
                     filename = res_file
                     await prog1.delete(True)
                     await prog.delete(True)
@@ -1397,6 +1406,8 @@ async def txt_handler(bot: Client, m: Message):
                     prog = await bot.send_message(channel_id, Show, disable_web_page_preview=True)
                     prog1 = await m.reply_text(Show1, disable_web_page_preview=True)
                     res_file = await helper.download_video(url, cmd, name)
+                    clean_name = safe_filename(name)
+                    res_file = await helper.download_and_decrypt_video(url, cmd, clean_name, appxkey)
                     filename = res_file
                     await prog1.delete(True)
                     await prog.delete(True)
