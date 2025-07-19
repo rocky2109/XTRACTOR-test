@@ -1144,9 +1144,17 @@ async def txt_handler(bot: Client, m: Message):
             if ".pdf*" in url:
                 url = f"https://dragoapi.vercel.app/pdf/{url}"
             
-            elif 'encrypted.m' in url:
-                appxkey = url.split('*')[1]
-                url = url.split('*')[0]
+            for link in links:
+                url = link
+                appxkey = None
+
+                if 'some_condition' in url:
+        
+                    pass
+
+                elif 'encrypted.m' in url:
+                    appxkey = url.split('*')[1]
+                    url = url.split('*')[0]
 
             if "youtu" in url:
                 ytf = f"bv*[height<={raw_text2}][ext=mp4]+ba[ext=m4a]/b[height<=?{raw_text2}]"
