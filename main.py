@@ -1144,17 +1144,9 @@ async def txt_handler(bot: Client, m: Message):
             if ".pdf*" in url:
                 url = f"https://dragoapi.vercel.app/pdf/{url}"
             
-            for link in links:
-                url = link
-                appxkey = None
-
-                if 'some_condition' in url:
-        
-                    pass
-
-                elif 'encrypted.m' in url:
-                    appxkey = url.split('*')[1]
-                    url = url.split('*')[0]
+            elif 'encrypted.m' in url:
+                appxkey = url.split('*')[1]
+                url = url.split('*')[0]
 
             if "youtu" in url:
                 ytf = f"bv*[height<={raw_text2}][ext=mp4]+ba[ext=m4a]/b[height<=?{raw_text2}]"
@@ -1349,8 +1341,7 @@ async def txt_handler(bot: Client, m: Message):
                     Show = f"<i><b>Video Downloading</b></i>\n<blockquote><b>{str(count).zfill(3)}) {name1}</b></blockquote>" 
                     prog = await bot.send_message(channel_id, Show, disable_web_page_preview=True)
                     prog1 = await m.reply_text(Show1, disable_web_page_preview=True)
-                    clean_name = safe_filename(name)
-                    res_file = await helper.download_and_decrypt_video(url, cmd, clean_name, appxkey)
+                    res_file = await helper.decrypt_and_merge_video(mpd, keys_string, path, name, raw_text2)
                     filename = res_file
                     await prog1.delete(True)
                     await prog.delete(True)
@@ -1380,8 +1371,7 @@ async def txt_handler(bot: Client, m: Message):
                     Show = f"<i><b>Video Downloading</b></i>\n<blockquote><b>{str(count).zfill(3)}) {name1}</b></blockquote>"
                     prog = await bot.send_message(channel_id, Show, disable_web_page_preview=True)
                     prog1 = await m.reply_text(Show1, disable_web_page_preview=True)
-                    clean_name = safe_filename(name)
-                    res_file = await helper.download_and_decrypt_video(url, cmd, clean_name, appxkey)
+                    res_file = await helper.decrypt_and_merge_video(mpd, keys_string, path, name, raw_text2)
                     filename = res_file
                     await prog1.delete(True)
                     await prog.delete(True)
@@ -1411,8 +1401,7 @@ async def txt_handler(bot: Client, m: Message):
                     Show = f"<i><b>Video Downloading</b></i>\n<blockquote><b>{str(count).zfill(3)}) {name1}</b></blockquote>"
                     prog = await bot.send_message(channel_id, Show, disable_web_page_preview=True)
                     prog1 = await m.reply_text(Show1, disable_web_page_preview=True)
-                    clean_name = safe_filename(name)
-                    res_file = await helper.download_and_decrypt_video(url, cmd, clean_name, appxkey)
+                    res_file = await helper.decrypt_and_merge_video(mpd, keys_string, path, name, raw_text2)
                     filename = res_file
                     await prog1.delete(True)
                     await prog.delete(True)
