@@ -1,4 +1,4 @@
-import os
+wimport os
 import re
 import sys
 import m3u8
