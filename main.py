@@ -493,7 +493,7 @@ async def txt_handler(bot: Client, m: Message):
             audio_title = response.json().get('title', 'YouTube Video')
             audio_title = audio_title.replace("_", " ")
             name = f'{audio_title[:60]} {CREDIT}'        
-            name1 = f'⚝ {audio_title} {CREDIT}'
+            name1 = f'{audio_title} {CREDIT}'
 
             if "youtube.com" in url or "youtu.be" in url:
                 prog = await m.reply_text(f"<i><b>Audio Downloading</b></i>\n<blockquote><b>{str(count).zfill(3)}) {name1}</b></blockquote>")
@@ -504,15 +504,15 @@ async def txt_handler(bot: Client, m: Message):
                     await prog.delete(True)
                     print(f"File {name}.mp3 exists, attempting to send...")
                     try:
-                        await bot.send_document(chat_id=m.chat.id, document=f'{name1}.mp3', caption=f'**🎵 Title : [{str(count).zfill(3)}] - {name1}.mp3\n\n🌟 Extracted By** : {CREDIT}')
-                        os.remove(f'{name}.mp3')
+                        await bot.send_document(chat_id=m.chat.id, document=f'{name1}.mp3', caption=f'**🎵 Title : [{str(count).zfill(3)}] - {name1}.mp3\n\n>🌟 Xtracted By** : {CREDIT}')
+                        os.remove(f'{name1}.mp3')
                         count+=1
                     except Exception as e:
-                        await m.reply_text(f'⚠️**Downloading Failed**⚠️\n**Name** =>> `{str(count).zfill(3)} {name1}`\n**Url** =>> {url}', disable_web_page_preview=True)
+                        await m.reply_text(f'⚠🫣**Downloading Failed**⚠️\n**Name** =>> `{str(count).zfill(3)} {name1}`\n**Url** =>> {url}', disable_web_page_preview=True)
                         count+=1
                 else:
                     await prog.delete(True)
-                    await m.reply_text(f'⚠️**Downloading Failed**⚠️\n**Name** =>> `{str(count).zfill(3)} {name1}`\n**Url** =>> {url}', disable_web_page_preview=True)
+                    await m.reply_text(f'🫣**Downloading Failed**⚠️\n**Name** =>> `{str(count).zfill(3)} {name1}`\n**Url** =>> {url}', disable_web_page_preview=True)
                     count+=1
                                
     except Exception as e:
