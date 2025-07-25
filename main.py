@@ -497,7 +497,8 @@ async def txt_handler(bot: Client, m: Message):
 
             if "youtube.com" in url or "youtu.be" in url:
                 prog = await m.reply_text(f"<i><b>Downloading Audio</b></i>\n<blockquote><b>{str(count).zfill(3)}) {name1}</b></blockquote>")
-                cmd = f'yt-dlp -x --audio-format mp3 --cookies {cookies_file_path} "{url}" -o "{name}.mp3"'
+                cmd = f'yt-dlp -f bestaudio --concurrent-fragments 5 --extract-audio --audio-format mp3 --audio-quality 0 --add-metadata --embed-thumbnail --metadata artist="{CREDIT}" --metadata title="{audio_title}" --cookies {cookies_file_path} "{url}" -o "{name}.%(ext)s"'
+
                 print(f"Running command: {cmd}")
                 os.system(cmd)
                 if os.path.exists(f'{name}.mp3'):
