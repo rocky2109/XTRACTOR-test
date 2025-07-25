@@ -504,7 +504,7 @@ async def txt_handler(bot: Client, m: Message):
                     await prog.delete(True)
                     print(f"File {name}.mp3 exists, attempting to send...")
                     try:
-                        await bot.send_document(chat_id=m.chat.id, document=f'{name1}.mp3', caption=f'**🎵 Title : [{str(count).zfill(3)}] - {name1}.mp3\n\n<a href="{url}">**Original Link**</a>\n\n🌟 Extracted By** : {CREDIT}')
+                        await bot.send_document(chat_id=m.chat.id, document=f'{name1}.mp3', caption=f'**🎵 Title : [{str(count).zfill(3)}] - {name1}.mp3\n\n🌟 Extracted By** : {CREDIT}')
                         os.remove(f'{name}.mp3')
                         count+=1
                     except Exception as e:
