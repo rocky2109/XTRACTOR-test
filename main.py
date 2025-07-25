@@ -513,8 +513,7 @@ async def txt_handler(bot: Client, m: Message):
                         await bot.send_audio(
                             chat_id=m.chat.id,
                             audio=audio_path,
-                            caption=f"""<b>🎵 Title :</b> [{str(count).zfill(3)}] - {audio_title}<br>
-                        <b>🔗 Link :</b> <a href="{url}">Click here</a><br>
+                            caption=f"""<b>🎵 Title :</b> [{str(count).zfill(3)}] - {audio_title},
                         <b>🎤 Artist :</b> {CREDIT}""",
                             title=audio_title,
                             performer=CREDIT,  # 👈 This sets the artist name!
