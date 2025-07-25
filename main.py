@@ -493,7 +493,7 @@ async def txt_handler(bot: Client, m: Message):
             audio_title = response.json().get('title', 'YouTube Video')
             audio_title = audio_title.replace("_", " ")
             name = f'{audio_title[:60]} {CREDIT}'        
-            name1 = f'{audio_title}'
+            name1 = f'⚝ {audio_title}'
 
             if "youtube.com" in url or "youtu.be" in url:
                 prog = await m.reply_text(f"<i><b>Audio Downloading</b></i>\n♬ ━━━⌾━━━━━━━━♬<blockquote><b>{str(count).zfill(3)}) {name1}</b></blockquote>")
@@ -504,7 +504,7 @@ async def txt_handler(bot: Client, m: Message):
                     await prog.delete(True)
                     print(f"File {name}.mp3 exists, attempting to send...")
                     try:
-                        await bot.send_document(chat_id=m.chat.id, document=f'{name1}.mp3', caption=f'**🎶 Title : [{str(count).zfill(3)}] - {name1}.mp3\n\n🔗<b>Video link :</b> <a href="{url}">Click here</a>\n\n🌟 Extracted By** : {CREDIT}')
+                        bot.send_document(chat_id=m.chat.id, document=f'{name1}.mp3', caption=f'**🎶 Title : **[{str(count).zfill(3)}] - {name1}.mp3\n\n🔗**Video link** : {url}\n\n🌟** Extracted By** : {CREDIT}')
                         os.remove(f'{name}.mp3')
                         count+=1
                     except Exception as e:
