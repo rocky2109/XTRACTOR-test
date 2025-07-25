@@ -493,7 +493,7 @@ async def txt_handler(bot: Client, m: Message):
             audio_title = response.json().get('title', 'YouTube Video')
             audio_title = audio_title.replace("_", " ")
             name = f'{audio_title[:60]} {CREDIT}'        
-            name1 = f'⚝ {audio_title}'
+            name1 = f'{audio_title}'
 
             if "youtube.com" in url or "youtu.be" in url:
                 prog = await m.reply_text(f"<i><b>Audio Downloading</b></i>\n♬ ━━━⌾━━━━━━━━♬<blockquote><b>{str(count).zfill(3)}) {name1}</b></blockquote>")
