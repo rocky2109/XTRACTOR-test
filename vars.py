@@ -7,7 +7,7 @@ BOT_TOKEN = environ.get("BOT_TOKEN", "")
 OWNER = int(environ.get("OWNER", "0"))
 
 CREDIT = environ.get("CREDIT", "CHOSEN_ONEx_bot")
-
+LOG_CHANNEL = "-1002547260712" 
 TOTAL_USER = os.environ.get('TOTAL_USERS', '5680454765').split(',')
 TOTAL_USERS = [int(user_id) for user_id in TOTAL_USER]
 
