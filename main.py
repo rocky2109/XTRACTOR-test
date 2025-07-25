@@ -457,7 +457,7 @@ async def txt_handler(bot: Client, m: Message):
         count = int(raw_text)
         try:
             if raw_text == "1":
-                playlist_message = await m.reply_text(f"<blockquote><b>🎀 Playlist : {playlist_name}</b></blockquote>")
+                playlist_message = await m.reply_text(f"<blockquote><b>♬ Music Playlist 🎀 : {playlist_name}</b></blockquote>")
                 await bot.pin_chat_message(m.chat.id, playlist_message.id)
                 message_id = playlist_message.id
                 pinning_message_id = message_id + 1
@@ -492,8 +492,8 @@ async def txt_handler(bot: Client, m: Message):
             response = requests.get(oembed_url)
             audio_title = response.json().get('title', 'YouTube Video')
             audio_title = audio_title.replace("_", " ")
-            name = f'⚝ {audio_title[:60]} {CREDIT}'        
-            name1 = f'⚝ {audio_title} 𝄞'
+            name = f'{audio_title[:60]} {CREDIT}'        
+            name1 = f'⚝ {audio_title}'
 
             if "youtube.com" in url or "youtu.be" in url:
                 prog = await m.reply_text(f"<i><b>Audio Downloading</b></i>\n♬ ━━━⌾━━━━━━━━♬<blockquote><b>{str(count).zfill(3)}) {name1}</b></blockquote>")
