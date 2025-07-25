@@ -518,7 +518,7 @@ async def txt_handler(bot: Client, m: Message):
                             title=audio_title,
                             performer=CREDIT,  # 👈 This sets the artist name!
                             duration=duration,
-                            parse_mode="HTML"
+                            
                         )
                         os.remove(f'{name1}.mp3')
                         count+=1
