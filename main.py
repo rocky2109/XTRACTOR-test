@@ -457,7 +457,7 @@ async def txt_handler(bot: Client, m: Message):
         count = int(raw_text)
         try:
             if raw_text == "1":
-                playlist_message = await m.reply_text(f"<blockquote><b>♬ Music Playlist 🎀 : {playlist_name}</b></blockquote>")
+                playlist_message = await m.reply_text(f"<blockquote><b> 🎀 Music Playlist 𝄞 :</blockquote>\n <blockquote>{playlist_name}</b></blockquote>")
                 await bot.pin_chat_message(m.chat.id, playlist_message.id)
                 message_id = playlist_message.id
                 pinning_message_id = message_id + 1
@@ -482,7 +482,7 @@ async def txt_handler(bot: Client, m: Message):
     try:
         for i in range(arg-1, len(links)):  # Iterate over each link
             if cancel_requested:
-                await m.reply_text("🚦**STOPPED**🚦")
+                await m.reply_text("**STOPPED BABY** 😉")
                 processing_request = False
                 cancel_requested = False
                 return
@@ -496,7 +496,7 @@ async def txt_handler(bot: Client, m: Message):
             name1 = f'{audio_title} {CREDIT}'
 
             if "youtube.com" in url or "youtu.be" in url:
-                prog = await m.reply_text(f"<i><b>Audio Downloading</b></i>\n<blockquote><b>{str(count).zfill(3)}) {name1}</b></blockquote>")
+                prog = await m.reply_text(f"<i><b>Downloading Audio</b></i>\n<blockquote><b>{str(count).zfill(3)}) {name1}</b></blockquote>")
                 cmd = f'yt-dlp -x --audio-format mp3 --cookies {cookies_file_path} "{url}" -o "{name}.mp3"'
                 print(f"Running command: {cmd}")
                 os.system(cmd)
@@ -504,11 +504,11 @@ async def txt_handler(bot: Client, m: Message):
                     await prog.delete(True)
                     print(f"File {name}.mp3 exists, attempting to send...")
                     try:
-                        await bot.send_document(chat_id=m.chat.id, document=f'{name1}.mp3', caption=f'**🎵 Title : [{str(count).zfill(3)}] - {name1}.mp3\n\n>🌟 Xtracted By** : {CREDIT}')
+                        await bot.send_document(chat_id=m.chat.id, document=f'{name1}.mp3', caption=f'**🎵 Title : [{str(count).zfill(3)}] - {name1}.mp3\n\n>𖣐 𝗫𝘁𝗿𝗮𝗰𝘁𝗲𝗱 𝗕𝘆: 𝗖𝗛𝗢𝗦𝗘𝗡 𝗢𝗡𝗘 ⚝')
                         os.remove(f'{name1}.mp3')
                         count+=1
                     except Exception as e:
-                        await m.reply_text(f'⚠🫣**Downloading Failed**⚠️\n**Name** =>> `{str(count).zfill(3)} {name1}`\n**Url** =>> {url}', disable_web_page_preview=True)
+                        await m.reply_text(f'🫣**Downloading Failed**⚠️\n**Name** =>> `{str(count).zfill(3)} {name1}`\n**Url** =>> {url}', disable_web_page_preview=True)
                         count+=1
                 else:
                     await prog.delete(True)
