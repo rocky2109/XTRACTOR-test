@@ -39,7 +39,7 @@ import zipfile
 import shutil
 import ffmpeg
 import unicodedata
-
+from mutagen.mp3 import MP3
 import re
 import unicodedata
 
@@ -505,7 +505,22 @@ async def txt_handler(bot: Client, m: Message):
                     await prog.delete(True)
                     print(f"File {name}.mp3 exists, attempting to send...")
                     try:
-                        await bot.send_document(chat_id=m.chat.id, document=f'{name1}.mp3', caption=f'**🎵 Title : [{str(count).zfill(3)}] - {name1}.mp3\n\n>𖣐 𝗫𝘁𝗿𝗮𝗰𝘁𝗲𝗱 𝗕𝘆: 𝗖𝗛𝗢𝗦𝗘𝗡 𝗢𝗡𝗘 ⚝')
+                        audio_path = f"{name1}.mp3"
+                        audio = MP3(audio_path)
+                        duration = int(audio.info.length)
+
+# Send as proper music
+                        await bot.send_audio(
+                            chat_id=m.chat.id,
+                            audio=audio_path,
+                            caption=f"""<b>🎵 Title :</b> [{str(count).zfill(3)}] - {audio_title}<br>
+                        <b>🔗 Link :</b> <a href="{url}">Click here</a><br>
+                        <b>🎤 Artist :</b> {CREDIT}""",
+                            title=audio_title,
+                            performer=CREDIT,  # 👈 This sets the artist name!
+                            duration=duration,
+                            parse_mode="HTML"
+                        )
                         os.remove(f'{name1}.mp3')
                         count+=1
                     except Exception as e:
