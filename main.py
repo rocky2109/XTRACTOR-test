@@ -80,6 +80,7 @@ bot = Client(
     bot_token=BOT_TOKEN
 )
 
+CREDIT = "𝗖𝗛𝗢𝗦𝗘𝗡 𝗢𝗡𝗘 ⚝"
 AUTH_USER = os.environ.get('AUTH_USERS', '6947378236,6790294924,7735386939').split(',')
 AUTH_USERS = [int(user_id) for user_id in AUTH_USER]
 if int(OWNER) not in AUTH_USERS:
@@ -433,7 +434,6 @@ async def youtube_to_txt(client, message: Message):
     os.remove(txt_path)
 
 
-
 @bot.on_message(filters.command(["ytm"]))
 async def txt_handler(bot: Client, m: Message):
     global processing_request, cancel_requested, cancel_message
@@ -441,24 +441,23 @@ async def txt_handler(bot: Client, m: Message):
     cancel_requested = False
     editable = await m.reply_text("__**Input Type**__\n\n<blockquote><b>01 •Send me the .txt file containing YouTube links\n02 •Send Single link or Set of YouTube multiple links</b></blockquote>")
     input: Message = await bot.listen(editable.chat.id)
+
+    # Parse TXT file
     if input.document and input.document.file_name.endswith(".txt"):
         x = await input.download()
         file_name, ext = os.path.splitext(os.path.basename(x))
         playlist_name = file_name.replace('_', ' ')
         try:
             with open(x, "r") as f:
-                content = f.read()
-            content = content.split("\n")
-            links = []
-            for i in content:
-                links.append(i.split("://", 1))
+                content = f.read().splitlines()
+            links = [l.strip() for l in content if l.strip()]
             os.remove(x)
         except:
-             await m.reply_text("**Invalid file input.**")
-             os.remove(x)
-             return
+            await m.reply_text("**Invalid file input.**")
+            os.remove(x)
+            return
 
-        await editable.edit(f"**•ᴛᴏᴛᴀʟ 🔗 ʟɪɴᴋs ғᴏᴜɴᴅ ᴀʀᴇ --__{len(links)}__--\n•sᴇɴᴅ ғʀᴏᴍ ᴡʜᴇʀᴇ ʏᴏᴜ ᴡᴀɴᴛ ᴛᴏ ᴅᴏᴡɴʟᴏᴀᴅ**")
+        await editable.edit(f"**•ᴛᴏᴛᴀʟ 🔗 ʟɪɴᴋs ғᴏᴜɴᴅ: {len(links)}**\n•Sᴇɴᴅ ғʀᴏᴍ ᴡʜᴇʀᴇ ʏᴏᴜ ᴡᴀɴᴛ ᴛᴏ ᴅᴏᴡɴʟᴏᴀᴅ")
         try:
             input0: Message = await bot.listen(editable.chat.id, timeout=20)
             raw_text = input0.text
@@ -469,22 +468,19 @@ async def txt_handler(bot: Client, m: Message):
         await editable.delete()
         arg = int(raw_text)
         count = int(raw_text)
+
         try:
             if raw_text == "1":
                 playlist_message = await m.reply_text(f"<blockquote><b> 🎀 Music Playlist 𝄞 :</blockquote>\n <blockquote>{playlist_name}</b></blockquote>")
                 await bot.pin_chat_message(m.chat.id, playlist_message.id)
-                message_id = playlist_message.id
-                pinning_message_id = message_id + 1
+                pinning_message_id = playlist_message.id + 1
                 await bot.delete_messages(m.chat.id, pinning_message_id)
-        except Exception as e:
-            None
-    
+        except Exception:
+            pass
+
+    # Parse direct links
     elif input.text:
-        content = input.text.strip()
-        content = content.split("\n")
-        links = []
-        for i in content:
-            links.append(i.split("://", 1))
+        links = [i.strip() for i in input.text.strip().splitlines() if i.strip()]
         count = 1
         arg = 1
         await editable.delete()
@@ -492,65 +488,70 @@ async def txt_handler(bot: Client, m: Message):
     else:
         await m.reply_text("**Invalid input. Send either a .txt file or YouTube links set**")
         return
- 
+
+    # Main download loop
     try:
-        for i in range(arg-1, len(links)):  # Iterate over each link
+        for i in range(arg - 1, len(links)):
             if cancel_requested:
                 await m.reply_text("**STOPPED BABY** 😉")
                 processing_request = False
                 cancel_requested = False
                 return
-            Vxy = links[i][1].replace("www.youtube-nocookie.com/embed", "youtu.be")
-            url = "https://" + Vxy
-            oembed_url = f"https://www.youtube.com/oembed?url={url}&format=json"
-            response = requests.get(oembed_url)
-            audio_title = response.json().get('title', 'YouTube Video')
-            audio_title = audio_title.replace("_", " ")
-            name = f'{audio_title[:60]} {CREDIT}'        
+
+            url = links[i].replace("www.youtube-nocookie.com/embed", "https://youtu.be").strip()
+            if not url.startswith("http"):
+                url = "https://" + url
+
+            # ✅ FIX: Get title with yt-dlp (not oEmbed)
+            try:
+                title = subprocess.check_output(
+                    ["yt-dlp", "--no-warnings", "--cookies", cookies_file_path, "--print", "title", url],
+                    stderr=subprocess.DEVNULL
+                ).decode().strip()
+            except:
+                title = f"YouTube Video {i+1}"
+
+            audio_title = title.replace("_", " ").strip()
+            name = f'{audio_title[:60]} {CREDIT}'
             name1 = f'{audio_title} {CREDIT}'
 
             if "youtube.com" in url or "youtu.be" in url:
                 prog = await m.reply_text(f"<i><b>Downloading Audio</b></i>\n<blockquote><b>{str(count).zfill(3)}) {name1}</b></blockquote>")
+                
                 cmd = f'yt-dlp -f bestaudio --concurrent-fragments 5 --extract-audio --audio-format mp3 --audio-quality 0 --add-metadata --embed-thumbnail --metadata artist="{CREDIT}" --metadata title="{audio_title}" --cookies {cookies_file_path} "{url}" -o "{name}.%(ext)s"'
-
                 print(f"Running command: {cmd}")
                 os.system(cmd)
+
                 if os.path.exists(f'{name}.mp3'):
                     await prog.delete(True)
-                    print(f"File {name}.mp3 exists, attempting to send...")
                     try:
                         audio_path = f"{name1}.mp3"
+                        os.rename(f"{name}.mp3", audio_path)
                         audio = MP3(audio_path)
                         duration = int(audio.info.length)
 
-# Send as proper music
                         await bot.send_audio(
                             chat_id=m.chat.id,
                             audio=audio_path,
-                            caption=f"""<b>🎵 Title :</b> [{str(count).zfill(3)}] - {audio_title},
-                        <b>🎤 Artist :</b> {CREDIT}""",
+                            caption=f"""<b>🎵 Title :</b> [{str(count).zfill(3)}] - {audio_title},\n<b>🎤 Artist :</b> {CREDIT}""",
                             title=audio_title,
-                            performer=CREDIT,  # 👈 This sets the artist name!
-                            duration=duration,
-                            
+                            performer=CREDIT,
+                            duration=duration
                         )
-                        os.remove(f'{name1}.mp3')
-                        count+=1
+                        os.remove(audio_path)
+                        count += 1
                     except Exception as e:
-                        await m.reply_text(f'🫣**Downloading Failed**⚠️\n**Name** =>> `{str(count).zfill(3)} {name1}`\n**Url** =>> {url}', disable_web_page_preview=True)
-                        count+=1
+                        await m.reply_text(f'🫣**Download Failed**\n`{str(count).zfill(3)} {name1}`\n🔗 {url}')
+                        count += 1
                 else:
                     await prog.delete(True)
-                    await m.reply_text(f'🫣**Downloading Failed**⚠️\n**Name** =>> `{str(count).zfill(3)} {name1}`\n**Url** =>> {url}', disable_web_page_preview=True)
-                    count+=1
-                               
+                    await m.reply_text(f'🫣**Download Failed**\n`{str(count).zfill(3)} {name1}`\n🔗 {url}')
+                    count += 1
     except Exception as e:
         await m.reply_text(f"<b>Failed Reason:</b>\n<blockquote><b>{str(e)}</b></blockquote>")
     finally:
-        await m.reply_text("<blockquote><b>All YouTube Music Download Successfully</b></blockquote>")
+        await m.reply_text("<blockquote><b>All YouTube Music Downloaded ✅</b></blockquote>")
 
-
-m_file_path= "main.py"
 
 @bot.on_message(filters.command("getcookies") & filters.private)
 async def getcookies_handler(client: Client, m: Message):
@@ -642,8 +643,6 @@ async def broadusers_handler(client: Client, message: Message):
     await message.reply_text(text)
 
 
-CREDIT = "🎧 @RealPirates"
-
 @bot.on_message(filters.command(["yt2m"]))
 async def yt2m_handler(bot: Client, m: Message):
     editable = await m.reply_text("🔹 **Send me the YouTube link**")
@@ -692,7 +691,7 @@ async def yt2m_handler(bot: Client, m: Message):
             }],
             'progress_hooks': [progress_hook],
             'quiet': True,
-            'cookiesfrombrowser': ('firefox',),  # Optional: auto cookie load
+            'cookiefile': cookies_file_path,
         }
 
         with YoutubeDL(ydl_opts) as ydl:
