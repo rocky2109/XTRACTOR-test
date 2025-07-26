@@ -43,7 +43,9 @@ from mutagen.mp3 import MP3
 import re
 import unicodedata
 
-import re
+from yt_dlp import YoutubeDL
+from yt_dlp.utils import DownloadError
+
 
 def clean_line(text: str) -> str:
     # Normalize spacing
@@ -425,7 +427,7 @@ async def youtube_to_txt(client, message: Message):
     await message.reply_document(
         document=txt_path,
         caption=f"<b>✅ Extracted from:</b> <a href='{youtube_link}'>YouTube</a>\n<b>📄 File:</b> <code>{safe_title}.txt</code>",
-        parse_mode="html"
+        
     )
 
     os.remove(txt_path)
@@ -639,44 +641,79 @@ async def broadusers_handler(client: Client, message: Message):
     )
     await message.reply_text(text)
 
+
+CREDIT = "🎧 @RealPirates"
+
 @bot.on_message(filters.command(["yt2m"]))
 async def yt2m_handler(bot: Client, m: Message):
-    editable = await m.reply_text(f"🔹**Send me the YouTube link**")
+    editable = await m.reply_text("🔹 **Send me the YouTube link**")
     input: Message = await bot.listen(editable.chat.id)
     youtube_link = input.text.strip()
     await input.delete(True)
 
-    Show = f"**⚡Dᴏᴡɴʟᴏᴀᴅ Sᴛᴀʀᴛᴇᴅ...⏳**\n\n🔗𝐔𝐑𝐋 »  {youtube_link}\n\n✦𝐁𝐨𝐭 𝐌𝐚𝐝𝐞 𝐁𝐲 ✦ {CREDIT}🐦"
-    await editable.edit(Show, disable_web_page_preview=True)
-    await asyncio.sleep(10)
-
+    status = await editable.edit(f"⏳ **Fetching video info...**")
+    
     try:
-        Vxy = youtube_link.replace("www.youtube-nocookie.com/embed", "youtu.be")
-        url = Vxy
-
-        # Fetch the YouTube video title using oEmbed
-        oembed_url = f"https://www.youtube.com/oembed?url={url}&format=json"
+        # Get title for filename and display
+        oembed_url = f"https://www.youtube.com/oembed?url={youtube_link}&format=json"
         response = requests.get(oembed_url)
-        audio_title = response.json().get('title', 'YouTube Video')
+        info_json = response.json()
+        video_title = info_json.get("title", "YouTube Audio")
+        clean_title = video_title[:50].replace("|", "").replace(":", "-")
 
-        name = f'{audio_title[:60]} {CREDIT}'
-        
-        if "youtube.com" in url or "youtu.be" in url:
-            cmd = f'yt-dlp -x --audio-format mp3 --cookies {cookies_file_path} "{url}" -o "{name}.mp3"'
-            print(f"Running command: {cmd}")
-            os.system(cmd)
-            if os.path.exists(f'{name}.mp3'):
-                print(f"File {name}.mp3 exists, attempting to send...")
-                try:
-                    await editable.delete()
-                    await bot.send_document(chat_id=m.chat.id, document=f'{name}.mp3', caption=f'**🎵 Title : **  {name}.mp3\n\n🔗**Video link** : {url}\n\n🌟** Extracted By** : {CREDIT}')
-                    os.remove(f'{name}.mp3')
-                except Exception as e:
-                    print(f"Error sending document: {str(e)}")
-            else:
-                print(f"File {name}.mp3 does not exist.")
+        filename = f"{clean_title} - {CREDIT}.mp3"
+        temp_msg = await status.edit("📥 **Downloading audio...**")
+
+        progress_msg = None
+
+        # Progress Hook
+        async def progress_hook(d):
+            nonlocal progress_msg
+            if d['status'] == 'downloading':
+                percent = d.get('_percent_str', '0.0%')
+                speed = d.get('_speed_str', 'N/A')
+                eta = d.get('_eta_str', 'N/A')
+                text = f"🔄 **Downloading:** {percent} at {speed} ETA {eta}"
+                if not progress_msg:
+                    progress_msg = await m.reply(text)
+                else:
+                    await progress_msg.edit(text)
+            elif d['status'] == 'finished':
+                await progress_msg.edit("✅ **Download complete!**\n🔄 Extracting audio...")
+
+        # yt-dlp options
+        ydl_opts = {
+            'format': 'bestaudio/best',
+            'outtmpl': filename,
+            'postprocessors': [{
+                'key': 'FFmpegExtractAudio',
+                'preferredcodec': 'mp3',
+                'preferredquality': '192',
+            }],
+            'progress_hooks': [progress_hook],
+            'quiet': True,
+            'cookiesfrombrowser': ('firefox',),  # Optional: auto cookie load
+        }
+
+        with YoutubeDL(ydl_opts) as ydl:
+            ydl.download([youtube_link])
+
+        await bot.send_audio(
+            chat_id=m.chat.id,
+            audio=filename,
+            caption=f'🎶 **Title:** {video_title}\n🔗 [YouTube Link]({youtube_link})\n\n🚀 **By:** {CREDIT}',
+            parse_mode='markdown',
+        )
+
+        await temp_msg.delete()
+        if progress_msg:
+            await progress_msg.delete()
+        os.remove(filename)
+
+    except DownloadError as e:
+        await m.reply_text(f"❌ Failed to download:\n`{e}`")
     except Exception as e:
-        await m.reply_text(f"**Failed Reason:**\n<blockquote>{str(e)}</blockquote>")
+        await m.reply_text(f"❌ Error:\n`{str(e)}`")
 
 
 @bot.on_message(filters.command(["stop"]))
