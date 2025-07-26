@@ -550,12 +550,12 @@ async def txt_handler(bot: Client, m: Message):
             Vxy = links[i][1].replace("www.youtube-nocookie.com/embed", "youtu.be")
             url = "https://" + Vxy
             metadata = get_youtube_metadata(url)
-            audio_title = metadata.get("title", "YouTube Audio")
-            audio_title = audio_title.replace("_", " ")
+            audio_title = metadata.get("title", "YouTube Audio").replace("_", " ")
+            audio_title = audio_title.replace("-", " ")
             thumbnail = metadata.get("thumbnail")
             name = f'{audio_title[:60]}'        
             name1 = f'{audio_title} {CREDIT}'
-            
+            audio_title_clean = clean_title(audio_title)  # your function to clean file name
 
             if "youtube.com" in url or "youtu.be" in url:
                 prog = await m.reply_text(f"<i><b>Downloading Audio</b></i>\n<blockquote><b>{str(count).zfill(3)}) {name1}</b></blockquote>")
@@ -580,27 +580,30 @@ async def txt_handler(bot: Client, m: Message):
                     f'-o "{audio_title_clean} {CREDIT}.%(ext)s"'
                 )
 
+                # Download
                 print(f"Running command: {cmd}")
-                os.system(cmd)
+                subprocess.run(cmd, shell=True)
+                
+                mp3_filename = f"{audio_title_clean} {CREDIT}.mp3"
                 if os.path.exists(f'{name}.mp3'):
                     await prog.delete(True)
                     print(f"File {name}.mp3 exists, attempting to send...")
                     try:
-                        audio_path = f"{name1}.mp3"
-                        audio = MP3(audio_path)
+                        
+                        audio = MP3(mp3_filename)
                         duration = int(audio.info.length)
 
 # Send as proper music
                         await bot.send_audio(
                             chat_id=m.chat.id,
-                            audio=audio_path,
+                            audio=mp3_filename,
                             caption=f"""<b>🎵 Title :</b> [{str(count).zfill(3)}] - {audio_title}\n\n>𖣐 𝗫𝘁𝗿𝗮𝗰𝘁𝗲𝗱 𝗕𝘆: 𝗖𝗛𝗢𝗦𝗘𝗡 𝗢𝗡𝗘 ⚝""",
                             title=audio_title,
                             performer=CREDIT,  # 👈 This sets the artist name!
                             duration=duration,
                             
                         )
-                        os.remove(f'{name1}.mp3')
+                        os.remove(mp3_filename)
                         count+=1
                     except Exception as e:
                         await m.reply_text(f'🫣Downloading Failed⚠️\nName =>> {str(count).zfill(3)} {name1}\nUrl =>> {url}', disable_web_page_preview=True)
