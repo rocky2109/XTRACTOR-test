@@ -550,8 +550,7 @@ async def txt_handler(bot: Client, m: Message):
             Vxy = links[i][1].replace("www.youtube-nocookie.com/embed", "youtu.be")
             url = "https://" + Vxy
             metadata = get_youtube_metadata(url)
-            audio_title = metadata.get("title", "YouTube Audio").replace("_", " ")
-            audio_title = audio_title.replace("-", " ")
+            audio_title_clean = audio_title.replace("-", " ").replace("_", " ")
             thumbnail = metadata.get("thumbnail")
             name = f'{audio_title[:60]}'        
             name1 = f'{audio_title} {CREDIT}'
@@ -559,7 +558,7 @@ async def txt_handler(bot: Client, m: Message):
 
             if "youtube.com" in url or "youtu.be" in url:
                 prog = await m.reply_text(f"<i><b>Downloading Audio</b></i>\n<blockquote><b>{str(count).zfill(3)}) {name1}</b></blockquote>")
-                audio_title_clean = clean_title(audio_title)
+                audio_title_clean = audio_title.replace("-", " ").replace("_", " ")
                 
                 cmd = (
                     f'yt-dlp '
