@@ -550,7 +550,7 @@ async def txt_handler(bot: Client, m: Message):
             Vxy = links[i][1].replace("www.youtube-nocookie.com/embed", "youtu.be")
             url = "https://" + Vxy
             metadata = get_youtube_metadata(url)
-            audio_title_clean = audio_title.replace("-", " ").replace("_", " ")
+            audio_title = metadata.get("title", "YouTube Audio").replace("-", " ").replace("_", " ")
             thumbnail = metadata.get("thumbnail")
             name = f'{audio_title[:60]}'        
             name1 = f'{audio_title} {CREDIT}'
