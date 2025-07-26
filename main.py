@@ -433,6 +433,49 @@ async def youtube_to_txt(client, message: Message):
 
     os.remove(txt_path)
 
+import requests
+from yt_dlp import YoutubeDL
+
+def get_youtube_metadata(url: str) -> dict:
+    try:
+        # Try fetching via yt_dlp first
+        ydl_opts = {
+            'quiet': True,
+            'skip_download': True,
+            'extract_flat': True,
+        }
+        with YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(url, download=False)
+            return {
+                'title': info.get('title'),
+                'thumbnail': info.get('thumbnail'),
+                'uploader': info.get('uploader'),
+                'duration': info.get('duration'),
+                'webpage_url': info.get('webpage_url'),
+            }
+    except Exception as e:
+        print(f"⚠️ yt-dlp failed: {e}")
+        # Fallback to oEmbed
+        try:
+            oembed_url = f"https://www.youtube.com/oembed?url={url}&format=json"
+            response = requests.get(oembed_url)
+            if response.status_code == 200:
+                data = response.json()
+                return {
+                    'title': data.get('title'),
+                    'thumbnail': data.get('thumbnail_url'),
+                    'uploader': data.get('author_name'),
+                    'duration': None,
+                    'webpage_url': url,
+                }
+            else:
+                print(f"❌ oEmbed request failed: HTTP {response.status_code}")
+        except Exception as oe:
+            print(f"❌ oEmbed fetch failed: {oe}")
+    
+    return {}
+
+
 @bot.on_message(filters.command(["ytm"]))
 async def txt_handler(bot: Client, m: Message):
     global processing_request, cancel_requested, cancel_message
@@ -501,10 +544,10 @@ async def txt_handler(bot: Client, m: Message):
                 return
             Vxy = links[i][1].replace("www.youtube-nocookie.com/embed", "youtu.be")
             url = "https://" + Vxy
-            oembed_url = f"https://www.youtube.com/oembed?url={url}&format=json"
-            response = requests.get(oembed_url)
-            audio_title = response.json().get('title', 'YouTube Video')
+            metadata = get_youtube_metadata(url)
+            audio_title = metadata.get("title", "YouTube Audio")
             audio_title = audio_title.replace("_", " ")
+            thumbnail = metadata.get("thumbnail")
             name = f'{audio_title[:60]} {CREDIT}'        
             name1 = f'{audio_title} {CREDIT}'
 
