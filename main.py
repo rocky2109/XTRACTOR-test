@@ -570,7 +570,7 @@ async def txt_handler(bot: Client, m: Message):
                     f'--add-metadata '
                     f'--embed-thumbnail '
                     f'--metadata artist="{CREDIT}" '
-                    f'--metadata title="{audio_title}" '
+                    f'--metadata title="{audio_title_clean}" '
                     f'--cookies "youtube_cookies.txt" '
                     f'--sleep-interval 2 '
                     f'--max-sleep-interval 6 '
