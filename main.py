@@ -356,84 +356,80 @@ async def text_to_txt(client, message: Message):
 UPLOAD_FOLDER = '/path/to/upload/folder'
 EDITED_FILE_PATH = '/path/to/save/edited_output.txt'
 
+from pyrogram import filters
+from pyrogram.types import Message
+from yt_dlp import YoutubeDL
+import os
+
 @bot.on_message(filters.command(["y2t"]))
 async def youtube_to_txt(client, message: Message):
     user_id = str(message.from_user.id)
-    
-    editable = await message.reply_text(
-        f"<blockquote><b>Send YouTube Website/Playlist link for convert in .txt file</b></blockquote>"
+
+    prompt = await message.reply_text(
+        "<b>🎞️ Send a YouTube video or playlist link to convert it into a .txt file.</b>"
     )
 
-    input_message: Message = await bot.listen(message.chat.id)
-    youtube_link = input_message.text.strip()
-    await input_message.delete(True)
-    await editable.delete(True)
+    try:
+        input_message: Message = await bot.listen(message.chat.id, timeout=60)
+        youtube_link = input_message.text.strip()
+        await input_message.delete()
+        await prompt.delete()
+    except Exception:
+        return await prompt.edit("⏱️ Timeout! Please try again.")
 
-    # Fetch the YouTube information using yt-dlp with cookies
+    # yt-dlp options
+    YDL_OPTS = {
+        'format': 'bestaudio/best',
+        'cookiefile': 'youtube_cookies.txt',
+        'nocheckcertificate': True,
+        'quiet': True,
+        'geo_bypass': True,
+        'noplaylist': False,  # allow playlist parsing
+        'extract_flat': True,  # don't download, just get URLs
+        'addheader': [
+            'User-Agent: Mozilla/5.0',
+        ]
+    }
 
-YDL_OPTS = {
-    'format': 'bestaudio/best',
-    'outtmpl': '%(title)s.%(ext)s',
-    'cookiefile': 'youtube_cookies.txt',
-    'nocheckcertificate': True,
-    'quiet': True,
-    'noplaylist': True,
-    'geo_bypass': True,
-    'postprocessors': [{
-        'key': 'FFmpegExtractAudio',
-        'preferredcodec': 'mp3',
-        'preferredquality': '192',
-    }],
-    'addheader': [
-        'User-Agent: Mozilla/5.0',
-    ]
-}
+    try:
+        with YoutubeDL(YDL_OPTS) as ydl:
+            info = ydl.extract_info(youtube_link, download=False)
+    except Exception as e:
+        return await message.reply_text(f"❌ Failed to fetch info:\n<code>{str(e)}</code>")
 
-url = "https://www.youtube.com/watch?v=fB4TPgbgbEE"
-
-with YoutubeDL(YDL_OPTS) as ydl:
-    info = ydl.extract_info(url, download=True)
-
-
-    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        try:
-            result = ydl.extract_info(youtube_link, download=False)
-            if 'entries' in result:
-                title = result.get('title', 'youtube_playlist')
-            else:
-                title = result.get('title', 'youtube_video')
-        except yt_dlp.utils.DownloadError as e:
-            await message.reply_text(
-                f"<blockquote>{str(e)}</blockquote>"
-            )
-            return
-
-    # Extract the YouTube links
+    # Parse results
+    title = info.get('title', 'youtube_result')
     videos = []
-    if 'entries' in result:
-        for entry in result['entries']:
-            video_title = entry.get('title', 'No title')
-            url = entry['url']
-            videos.append(f"{video_title}: {url}")
+
+    if 'entries' in info:
+        # It's a playlist
+        for entry in info['entries']:
+            video_title = entry.get('title', 'Untitled')
+            video_url = f"https://www.youtube.com/watch?v={entry.get('id')}"
+            videos.append(f"{video_title}: {video_url}")
     else:
-        video_title = result.get('title', 'No title')
-        url = result['url']
-        videos.append(f"{video_title}: {url}")
+        # It's a single video
+        video_title = info.get('title', 'Untitled')
+        video_url = f"https://www.youtube.com/watch?v={info.get('id')}"
+        videos.append(f"{video_title}: {video_url}")
 
-    # Create and save the .txt file with the custom name
-    txt_file = os.path.join("downloads", f'{title}.txt')
-    os.makedirs(os.path.dirname(txt_file), exist_ok=True)  # Ensure the directory exists
-    with open(txt_file, 'w') as f:
-        f.write('\n'.join(videos))
+    # Save to file
+    os.makedirs("downloads", exist_ok=True)
+    safe_title = "".join(x for x in title if x.isalnum() or x in " _-").strip()
+    txt_path = os.path.join("downloads", f"{safe_title}.txt")
 
-    # Send the generated text file to the user with a pretty caption
+    with open(txt_path, "w", encoding="utf-8") as f:
+        f.write("\n".join(videos))
+
+    # Send the file
     await message.reply_document(
-        document=txt_file,
-        caption=f'<a href="{youtube_link}">__**Click Here to Open Link**__</a>\n<blockquote>{title}.txt</blockquote>\n'
+        document=txt_path,
+        caption=f"<b>✅ Extracted from:</b> <a href='{youtube_link}'>YouTube</a>\n<b>📄 File:</b> <code>{safe_title}.txt</code>",
+        parse_mode="html"
     )
 
-    # Remove the temporary text file after sending
-    os.remove(txt_file)
+    os.remove(txt_path)
+
 
 
 @bot.on_message(filters.command(["ytm"]))
