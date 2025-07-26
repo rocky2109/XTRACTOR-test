@@ -564,6 +564,7 @@ async def txt_handler(bot: Client, m: Message):
                     f'--embed-thumbnail '
                     f'--metadata artist="{CREDIT}" '
                     f'--metadata title="{audio_title}" '
+                    f'--parse-metadata "title:%(uploader)s - %(title)s" '
                     f'--cookies "{cookies_file_path}" '
                     f'--no-playlist '
                     f'"{url}" '
