@@ -476,6 +476,11 @@ def get_youtube_metadata(url: str) -> dict:
     return {}
 
 
+
+def clean_title(title: str) -> str:
+    # Remove characters not safe for filenames, including hyphen (-)
+    return re.sub(r'[<>:"/\\|?*\[\]-]+', '', title).strip()
+
 @bot.on_message(filters.command(["ytm"]))
 async def txt_handler(bot: Client, m: Message):
     global processing_request, cancel_requested, cancel_message
@@ -548,11 +553,14 @@ async def txt_handler(bot: Client, m: Message):
             audio_title = metadata.get("title", "YouTube Audio")
             audio_title = audio_title.replace("_", " ")
             thumbnail = metadata.get("thumbnail")
-            name = f'{audio_title[:60]} {CREDIT}'        
+            name = f'{audio_title[:60]}'        
             name1 = f'{audio_title} {CREDIT}'
+            
 
             if "youtube.com" in url or "youtu.be" in url:
                 prog = await m.reply_text(f"<i><b>Downloading Audio</b></i>\n<blockquote><b>{str(count).zfill(3)}) {name1}</b></blockquote>")
+                audio_title_clean = clean_title(audio_title)
+                
                 cmd = (
                     f'yt-dlp '
                     f'-f bestaudio '
@@ -564,11 +572,10 @@ async def txt_handler(bot: Client, m: Message):
                     f'--embed-thumbnail '
                     f'--metadata artist="{CREDIT}" '
                     f'--metadata title="{audio_title}" '
-                    f'--parse-metadata "title:%(uploader)s - %(title)s" '
                     f'--cookies "{cookies_file_path}" '
                     f'--no-playlist '
                     f'"{url}" '
-                    f'-o "{name}.%(ext)s"'
+                    f'-o "{audio_title_clean} {CREDIT}.%(ext)s"'
                 )
 
                 print(f"Running command: {cmd}")
