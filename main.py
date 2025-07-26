@@ -584,7 +584,7 @@ async def txt_handler(bot: Client, m: Message):
                         await bot.send_audio(
                             chat_id=m.chat.id,
                             audio=audio_path,
-                            caption=f"""<b>🎵 Title :</b> [{str(count).zfill(3)}] - {audio_title}\n\n>𖣐 𝗫𝘁𝗿𝗮𝗰𝘁𝗲𝗱 𝗕𝘆: 𝗖𝗛𝗢𝗦𝗘𝗡 𝗢𝗡𝗘 ⚝}""",
+                            caption=f"""<b>🎵 Title :</b> [{str(count).zfill(3)}] - {audio_title}\n\n>𖣐 𝗫𝘁𝗿𝗮𝗰𝘁𝗲𝗱 𝗕𝘆: 𝗖𝗛𝗢𝗦𝗘𝗡 𝗢𝗡𝗘 ⚝""",
                             title=audio_title,
                             performer=CREDIT,  # 👈 This sets the artist name!
                             duration=duration,
