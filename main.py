@@ -553,7 +553,22 @@ async def txt_handler(bot: Client, m: Message):
 
             if "youtube.com" in url or "youtu.be" in url:
                 prog = await m.reply_text(f"<i><b>Downloading Audio</b></i>\n<blockquote><b>{str(count).zfill(3)}) {name1}</b></blockquote>")
-                cmd = f'yt-dlp -f bestaudio --concurrent-fragments 5 --extract-audio --audio-format mp3 --audio-quality 0 --add-metadata --embed-thumbnail --metadata artist="{CREDIT}" --metadata title="{audio_title}" --cookies {cookies_file_path} "{url}" -o "{name}.%(ext)s"'
+                cmd = (
+                    f'yt-dlp '
+                    f'-f bestaudio '
+                    f'--concurrent-fragments 5 '
+                    f'--extract-audio '
+                    f'--audio-format mp3 '
+                    f'--audio-quality 0 '
+                    f'--add-metadata '
+                    f'--embed-thumbnail '
+                    f'--metadata artist="{CREDIT}" '
+                    f'--metadata title="{audio_title}" '
+                    f'--cookies "{cookies_file_path}" '
+                    f'--no-playlist '
+                    f'"{url}" '
+                    f'-o "{name}.%(ext)s"'
+                )
 
                 print(f"Running command: {cmd}")
                 os.system(cmd)
@@ -569,8 +584,7 @@ async def txt_handler(bot: Client, m: Message):
                         await bot.send_audio(
                             chat_id=m.chat.id,
                             audio=audio_path,
-                            caption=f"""<b>🎵 Title :</b> [{str(count).zfill(3)}] - {audio_title},
-                        <b>🎤 Artist :</b> {CREDIT}""",
+                            caption=f"""<b>🎵 Title :</b> [{str(count).zfill(3)}] - {audio_title}\n\n>𖣐 𝗫𝘁𝗿𝗮𝗰𝘁𝗲𝗱 𝗕𝘆: 𝗖𝗛𝗢𝗦𝗘𝗡 𝗢𝗡𝗘 ⚝}""",
                             title=audio_title,
                             performer=CREDIT,  # 👈 This sets the artist name!
                             duration=duration,
