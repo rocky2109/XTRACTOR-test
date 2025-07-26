@@ -370,14 +370,30 @@ async def youtube_to_txt(client, message: Message):
     await editable.delete(True)
 
     # Fetch the YouTube information using yt-dlp with cookies
-    ydl_opts = {
-        'quiet': True,
-        'extract_flat': True,
-        'skip_download': True,
-        'force_generic_extractor': True,
-        'forcejson': True,
-        'cookies': 'youtube_cookies.txt'  # Specify the cookies file
-    }
+
+YDL_OPTS = {
+    'format': 'bestaudio/best',
+    'outtmpl': '%(title)s.%(ext)s',
+    'cookiefile': 'youtube_cookies.txt',
+    'nocheckcertificate': True,
+    'quiet': True,
+    'noplaylist': True,
+    'geo_bypass': True,
+    'postprocessors': [{
+        'key': 'FFmpegExtractAudio',
+        'preferredcodec': 'mp3',
+        'preferredquality': '192',
+    }],
+    'addheader': [
+        'User-Agent: Mozilla/5.0',
+    ]
+}
+
+url = "https://www.youtube.com/watch?v=fB4TPgbgbEE"
+
+with YoutubeDL(YDL_OPTS) as ydl:
+    info = ydl.extract_info(url, download=True)
+
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         try:
